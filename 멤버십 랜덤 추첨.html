@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>멤버십 추첨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f5f6f8;
+  --surface:#ffffff;
+  --surface2:#f9fafb;
+  --primary:#3182f6;
+  --primary-bg:#ebf3fe;
+  --primary-dark:#1b64da;
+  --success:#00c73c;
+  --success-bg:#e8faf0;
+  --warning:#ff9500;
+  --warning-bg:#fff3e0;
+  --danger:#f04452;
+  --danger-bg:#fff0f1;
+  --purple:#7c3aed;
+  --purple-bg:#f3eeff;
+  --text1:#191f28;
+  --text2:#4e5968;
+  --text3:#8b95a1;
+  --text4:#c2c9d0;
+  --border:#e5e8eb;
+  --border2:#f0f2f4;
+  --r-sm:8px;
+  --r:12px;
+  --r-lg:16px;
+  --r-xl:20px;
+  --r-2xl:24px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.06);
+  --shadow:0 4px 20px rgba(0,0,0,.09);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif;
+  background:var(--bg);color:var(--text1);
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ── LAYOUT ── */
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+
+/* ── HEADER ── */
+.header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(245,246,248,.9);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  padding:14px 20px 0;
+}
+.header-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:12px;
+}
+.logo{font-size:18px;font-weight:900;letter-spacing:-.03em;color:var(--text1)}
+.logo span{color:var(--primary)}
+.test-badge{
+  font-size:11px;font-weight:700;
+  background:linear-gradient(135deg,#ff9500,#ff6b00);
+  color:#fff;padding:4px 10px;border-radius:20px;
+  display:none;
+}
+
+/* ── SEGMENTED CONTROL (Toss style) ── */
+.seg{
+  display:flex;background:var(--border2);
+  border-radius:var(--r);padding:3px;gap:2px;
+  margin-bottom:-1px;
+}
+.seg-btn{
+  flex:1;padding:9px 4px;border:none;border-radius:var(--r-sm);
+  background:transparent;font-family:inherit;
+  font-size:13px;font-weight:600;color:var(--text3);
+  cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.seg-btn.active{
+  background:var(--surface);color:var(--text1);
+  box-shadow:var(--shadow-sm);
+}
+
+/* ── SCREENS ── */
+.screen{display:none;padding:20px 20px 120px;animation:up .22s ease both}
+.screen.active{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{
+  background:var(--surface);border-radius:var(--r-xl);
+  padding:20px;margin-bottom:12px;
+  box-shadow:var(--shadow-xs);
+}
+.card-sm{padding:16px}
+.card-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.card-sub{font-size:13px;color:var(--text3);line-height:1.5}
+
+/* ── SECTION HEADER ── */
+.sec-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;padding:0 4px;
+}
+.sec-label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:none;border-radius:var(--r);font-family:inherit;
+  font-weight:700;cursor:pointer;transition:all .16s;white-space:nowrap;
+}
+.btn-lg{font-size:16px;padding:17px 24px;border-radius:var(--r-lg)}
+.btn-md{font-size:14px;padding:13px 18px}
+.btn-sm{font-size:13px;padding:9px 14px}
+.btn-xs{font-size:12px;padding:6px 12px;border-radius:var(--r-sm)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(49,130,246,.4)}
+.btn-primary:active{transform:none}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#00a832;transform:translateY(-1px)}
+.btn-ghost{background:var(--bg);color:var(--text2)}
+.btn-ghost:hover{background:var(--border2)}
+.btn-danger-soft{background:var(--danger-bg);color:var(--danger)}
+.btn-danger-soft:hover{background:#ffdde0}
+.btn-full{width:100%}
+
+/* ── FORM ── */
+.form-group{margin-bottom:14px}
+.form-label{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:7px;display:block}
+.input{
+  width:100%;padding:13px 15px;
+  border:1.5px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:15px;color:var(--text1);
+  background:var(--bg);outline:none;transition:.15s;
+}
+.input:focus{border-color:var(--primary);background:var(--surface)}
+.input::placeholder{color:var(--text4)}
+select.input{cursor:pointer;-webkit-appearance:none}
+
+/* ── DROP ZONE ── */
+.dropzone{
+  position:relative;border:2px dashed var(--border);
+  border-radius:var(--r-xl);padding:36px 20px;
+  text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--bg);overflow:hidden;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--primary);background:var(--primary-bg)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dropzone.done{border-color:var(--success);background:var(--success-bg);border-style:solid}
+.drop-icon{font-size:36px;margin-bottom:10px;display:block}
+.drop-title{font-size:15px;font-weight:700;color:var(--text1);margin-bottom:4px}
+.drop-hint{font-size:12px;color:var(--text3)}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.chip-blue{background:var(--primary-bg);color:var(--primary)}
+.chip-green{background:var(--success-bg);color:#00843e}
+.chip-gray{background:var(--border2);color:var(--text3)}
+
+/* ── COL MAP ── */
+.colmap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.colmap-item{background:var(--bg);border-radius:var(--r);padding:10px 12px}
+.colmap-label{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+
+/* ── STEP LIST (guide) ── */
+.steps{display:flex;flex-direction:column;gap:18px}
+.step{display:flex;gap:14px}
+.step-num{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  font-size:13px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+}
+.step-num.warn{background:var(--warning)}
+.step-body{}
+.step-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.step-desc{font-size:13px;color:var(--text3);line-height:1.6}
+.step-desc a{color:var(--primary);font-weight:700;text-decoration:none}
+.step-code{
+  margin-top:8px;background:var(--bg);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:12px;color:var(--text2);
+  font-family:'SF Mono','Fira Code',monospace;line-height:1.9;
+  border:1px solid var(--border);
+}
+
+/* ── MODE SELECT ── */
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.mode-card{
+  background:var(--surface);border-radius:var(--r-xl);
+  padding:18px 16px;border:2px solid var(--border);
+  cursor:pointer;transition:all .18s;text-align:center;
+}
+.mode-card:hover{border-color:var(--primary)}
+.mode-card.active{border-color:var(--primary);background:var(--primary-bg)}
+.mode-card-icon{font-size:28px;margin-bottom:8px}
+.mode-card-title{font-size:14px;font-weight:800;margin-bottom:3px}
+.mode-card-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
+/* ── ALERT / NOTICE ── */
+.alert{border-radius:var(--r);padding:13px 15px;font-size:13px;line-height:1.7;margin-bottom:12px}
+.alert b{font-weight:700}
+.alert-blue{background:var(--primary-bg);color:#1a4fa0;border-left:3px solid var(--primary)}
+.alert-orange{background:var(--warning-bg);color:#7a4200;border-left:3px solid var(--warning)}
+.alert-green{background:var(--success-bg);color:#00502e;border-left:3px solid var(--success)}
+
+/* ── PRIZE ROW ── */
+.prize-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.prize-row{
+  display:flex;gap:8px;align-items:center;
+  background:var(--bg);border-radius:var(--r);padding:12px 14px;
+  border:1.5px solid transparent;transition:.15s;
+}
+.prize-row:focus-within{border-color:var(--primary);background:var(--surface)}
+.prize-idx{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:var(--primary-bg);color:var(--primary);
+  font-size:12px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.prize-input{border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text1);flex:1;outline:none}
+.prize-input::placeholder{color:var(--text4)}
+.prize-qty{width:44px;border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:800;color:var(--primary);text-align:center;outline:none}
+.prize-unit{font-size:12px;color:var(--text3);margin-right:4px}
+
+/* ── MEMBER SUMMARY ── */
+.member-summary{
+  display:flex;align-items:center;gap:14px;
+  background:var(--success-bg);border-radius:var(--r-xl);
+  padding:16px 18px;margin-bottom:12px;
+  border:1.5px solid rgba(0,199,60,.2);
+}
+.member-summary-icon{font-size:32px;flex-shrink:0}
+.member-summary-title{font-size:15px;font-weight:800;color:var(--text1)}
+.member-summary-sub{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* ── STATS GRID ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat{
+  background:var(--surface);border-radius:var(--r-xl);
+  padding:16px 18px;box-shadow:var(--shadow-xs);
+}
+.stat-icon{font-size:24px;margin-bottom:10px;display:block}
+.stat-val{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px}
+.stat-label{font-size:12px;font-weight:600;color:var(--text3)}
+
+/* ── RAFFLE BIG BUTTONS ── */
+.raffle-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.rbtn{
+  padding:18px 14px;border-radius:var(--r-xl);border:none;
+  font-family:inherit;cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.rbtn-icon{font-size:26px}
+.rbtn-title{font-size:15px;font-weight:800}
+.rbtn-sub{font-size:11px;font-weight:500;opacity:.7}
+.rbtn-all{
+  background:linear-gradient(135deg,#3182f6 0%,#1b64da 100%);color:#fff;
+  box-shadow:0 6px 24px rgba(49,130,246,.4);
+}
+.rbtn-all:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(49,130,246,.5)}
+.rbtn-step{
+  background:var(--surface);color:var(--primary);
+  border:2px solid var(--primary-bg);box-shadow:var(--shadow-xs);
+}
+.rbtn-step:hover{background:var(--primary-bg);transform:translateY(-1px)}
+.rbtn-step:active{transform:none}
+
+/* ── STEP DOTS ── */
+.step-dots{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface);border-radius:var(--r);
+  padding:12px 16px;margin-bottom:16px;
+  box-shadow:var(--shadow-xs);flex-wrap:wrap;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.3s;flex-shrink:0}
+.dot.done{background:var(--success)}
+.dot.cur{background:var(--primary);width:10px;height:10px;box-shadow:0 0 0 3px var(--primary-bg)}
+.dot-line{flex:1;height:1.5px;background:var(--border2);min-width:8px}
+.dot-label{font-size:12px;font-weight:600;color:var(--text3);margin-left:4px;white-space:nowrap}
+
+/* ── PRIZE SECTION ── */
+.psec{margin-bottom:20px}
+.psec-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:var(--surface);border-radius:var(--r-lg);
+  margin-bottom:8px;box-shadow:var(--shadow-xs);
+}
+.psec-left{display:flex;align-items:center;gap:10px}
+.psec-badge{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;color:#fff;flex-shrink:0;
+}
+.psec-name{font-size:15px;font-weight:800}
+.psec-cnt{font-size:12px;color:var(--text3);margin-top:1px}
+
+/* ── WINNER CARD ── */
+.wcard{
+  background:var(--surface);border-radius:var(--r-xl);
+  padding:16px 18px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:var(--shadow-xs);
+  position:relative;overflow:hidden;transition:.25s;
+}
+.wcard.revealed{
+  box-shadow:0 4px 24px rgba(0,199,60,.15);
+  border:1px solid rgba(0,199,60,.2);
+}
+.wcard.revealed::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--success);
+}
+.wcard-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.avatar{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;
+}
+.wcard-info{flex:1;min-width:0}
+.name-hidden{
+  display:inline-block;
+  background:var(--border2);color:transparent;
+  border-radius:var(--r-sm);padding:4px 20px;
+  cursor:pointer;user-select:none;
+  font-size:18px;font-weight:800;
+  border:2px dashed var(--border);
+  transition:.2s;
+}
+.name-hidden:hover{background:var(--primary-bg);border-color:var(--primary)}
+.name-hint{font-size:11px;color:var(--text4);margin-top:2px;font-weight:600}
+.name-shown{font-size:18px;font-weight:800;color:var(--text1)}
+.wcard-meta{font-size:12px;color:var(--text3);margin-top:3px;font-weight:500}
+.wcard-right{flex-shrink:0}
+.check-badge{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--success);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;
+  box-shadow:0 2px 10px rgba(0,199,60,.3);
+}
+.pending-badge{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--border2);color:var(--text4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+th{
+  padding:9px 10px;text-align:left;border-bottom:1.5px solid var(--border2);
+  font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--text3);cursor:pointer;white-space:nowrap;user-select:none;
+}
+th:hover{color:var(--primary)}
+th.sorted{color:var(--primary)}
+td{padding:10px 10px;border-bottom:1px solid var(--border2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-b{background:var(--primary-bg);color:var(--primary)}
+.badge-g{background:var(--success-bg);color:#00843e}
+.badge-o{background:var(--warning-bg);color:#7a4200}
+.badge-gray{background:var(--border2);color:var(--text3)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:56px 20px}
+.empty-icon{font-size:52px;margin-bottom:14px;display:block}
+.empty-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.empty-desc{font-size:14px;color:var(--text3);line-height:1.6}
+
+/* ── STICKY BOTTOM ── */
+.sticky-bottom{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  padding:12px 20px 24px;
+  background:linear-gradient(to top,var(--bg) 60%,transparent);
+  z-index:50;
+}
+
+/* ── MODAL (bottom sheet) ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);display:none;
+  align-items:flex-end;justify-content:center;z-index:300;
+}
+.modal-bg.open{display:flex}
+.modal-sheet{
+  background:var(--surface);border-radius:28px 28px 0 0;
+  padding:12px 24px 40px;width:100%;max-width:480px;
+  animation:sheetIn .28s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes sheetIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 22px}
+.modal-icon{font-size:44px;text-align:center;margin-bottom:12px}
+.modal-title{font-size:20px;font-weight:900;text-align:center;margin-bottom:8px;letter-spacing:-.02em}
+.modal-desc{font-size:14px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:24px}
+
+/* ── TABLE MODAL ── */
+.tbl-modal .modal-sheet{max-height:85vh;overflow-y:auto;padding-bottom:30px}
+
+/* ── CONFETTI ── */
+.cfwrap{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.cf{position:absolute;top:-16px;animation:fall linear forwards;border-radius:2px}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* ── SLOT ANIM ── */
+@keyframes slotIn{
+  0%{transform:translateY(-16px) scale(.95);opacity:0}
+  70%{transform:translateY(3px) scale(1.02)}
+  100%{transform:translateY(0) scale(1);opacity:1}
+}
+.slot-in{animation:slotIn .4s cubic-bezier(.34,1.56,.64,1) both}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">🎁 멤버십<span>추첨</span></div>
+    <div class="test-badge" id="test-badge">테스트 모드</div>
+  </div>
+  <div class="seg">
+    <button class="seg-btn active" onclick="goTab('guide')" id="tab-guide">📋 가이드</button>
+    <button class="seg-btn" onclick="goTab('setup')" id="tab-setup">⚙️ 세팅</button>
+    <button class="seg-btn" onclick="tryGoRaffle()" id="tab-raffle">🎯 추첨</button>
+  </div>
+</div>
+
+<!-- ═══════════════ GUIDE ═══════════════ -->
+<div class="screen active" id="s-guide">
+
+  <div class="mode-cards">
+    <div class="mode-card active" id="mc-real" onclick="setMode('real')">
+      <div class="mode-card-icon">📄</div>
+      <div class="mode-card-title">실제 CSV</div>
+      <div class="mode-card-desc">유튜브 스튜디오에서 내보낸 파일 사용</div>
+    </div>
+    <div class="mode-card" id="mc-test" onclick="setMode('test')">
+      <div class="mode-card-icon">🧪</div>
+      <div class="mode-card-title">테스트 모드</div>
+      <div class="mode-card-desc">1,000명 임의 생성으로 체험</div>
+    </div>
+  </div>
+
+  <!-- REAL -->
+  <div id="guide-real">
+    <div class="card">
+      <div class="card-title">CSV 파일 받는 방법</div>
+      <div class="card-sub" style="margin-bottom:20px">유튜브 스튜디오에서 멤버 목록 내보내기</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">유튜브 스튜디오 접속</div>
+            <div class="step-desc"><a href="https://studio.youtube.com" target="_blank">studio.youtube.com</a> 에 접속하세요</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">수익 창출 → 멤버십</div>
+            <div class="step-desc">왼쪽 메뉴 <b>수익 창출</b> 클릭 후 <b>멤버십</b> 탭으로 이동</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">내보내기 버튼 클릭</div>
+            <div class="step-desc">멤버 목록 페이지 상단 <b>내보내기(Export)</b> 클릭 → CSV 저장</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">세팅 탭에서 업로드</div>
+            <div class="step-desc">저장한 CSV를 세팅 탭에서 올리면 완료!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">CSV 직접 만들기</div>
+      <div class="alert alert-blue">유튜브 내보내기가 안 될 경우 엑셀에서 아래 형식으로 만들어 <b>.csv</b>로 저장하세요</div>
+      <div class="step-code">표시이름,채널ID,멤버십등급,가입일<br>홍길동,UCxxxxx,일반 멤버,2024-01-15<br>김철수,UCyyyyy,프리미엄,2023-06-30<br>이영희,UCzzzzz,일반 멤버,2024-03-22</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:10px">날짜: <b>YYYY-MM-DD</b> 권장 · YYYY/MM/DD · DD.MM.YYYY 지원</div>
+    </div>
+
+    <div class="alert alert-orange">⚠️ <b>참고:</b> 유튜브는 멤버 이메일을 외부에 제공하지 않아요. 채널 ID · 이름 · 등급 · 가입일만 제공됩니다.</div>
+
+    <button class="btn btn-primary btn-lg btn-full" onclick="goTab('setup')">세팅으로 이동 →</button>
+  </div>
+
+  <!-- TEST -->
+  <div id="guide-test" style="display:none">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:8px">🧪 테스트 모드</div>
+      <div class="card-sub" style="margin-bottom:16px">실제 CSV 없이 추첨 시스템을 체험해보세요. 한국 이름 패턴으로 1,000명을 자동 생성합니다.</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num warn">1</div>
+          <div class="step-body">
+            <div class="step-title">1,000명 자동 생성</div>
+            <div class="step-desc">가입일 1개월 ~ 36개월 랜덤 · 4가지 멤버십 등급 배정</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num warn">2</div>
+          <div class="step-body">
+            <div class="step-title">상품 설정 후 추첨</div>
+            <div class="step-desc">세팅 탭에서 상품을 설정하고 추첨을 바로 시작할 수 있어요</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-lg btn-full" style="background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff;font-family:inherit;cursor:pointer;border:none;border-radius:var(--r-xl)" onclick="activateTest()">
+      🧪 테스트 모드 시작
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<div class="screen" id="s-setup">
+
+  <div id="test-banner" class="alert alert-orange" style="display:none">🧪 <b>테스트 모드</b> — 1,000명 임의 생성됨</div>
+
+  <!-- CSV Upload (hidden in test) -->
+  <div id="csv-section">
+    <div class="sec-hd"><span class="sec-label">멤버 데이터</span></div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">CSV 업로드</div>
+      <div class="dropzone" id="dz">
+        <input type="file" accept=".csv" onchange="handleFile(this.files[0])"/>
+        <span class="drop-icon" id="dz-icon">📄</span>
+        <div class="drop-title" id="dz-title">CSV 파일을 올려주세요</div>
+        <div class="drop-hint" id="dz-hint">클릭하거나 드래그해서 업로드</div>
+      </div>
+
+      <div id="csv-cfg" style="display:none;margin-top:16px">
+        <div class="chips" id="csv-chips" style="margin-bottom:14px"></div>
+        <div style="font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">컬럼 매핑</div>
+        <div class="colmap" id="col-map"></div>
+        <div class="form-group">
+          <label class="form-label">기준일 (이 날짜 이전 가입자만 포함)</label>
+          <input type="date" class="input" id="cutoff"/>
+        </div>
+        <button class="btn btn-success btn-md btn-full" onclick="applyCSV()">✓ 멤버 불러오기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member summary -->
+  <div id="mem-summary" style="display:none">
+    <div class="member-summary">
+      <span class="member-summary-icon">👥</span>
+      <div style="flex:1">
+        <div class="member-summary-title" id="mem-title">0명</div>
+        <div class="member-summary-sub" id="mem-sub"></div>
+      </div>
+      <button class="btn btn-xs btn-ghost" onclick="openTableModal()">목록 보기</button>
+    </div>
+  </div>
+
+  <!-- Prizes -->
+  <div class="sec-hd"><span class="sec-label">당첨 상품</span><button class="btn btn-xs btn-ghost" onclick="addPrize()">+ 추가</button></div>
+  <div class="card">
+    <div class="prize-list" id="prize-list"></div>
+    <div style="font-size:12px;color:var(--text3)">상품명 입력 후 당첨 인원 수 설정</div>
+  </div>
+
+  <button class="btn btn-primary btn-lg btn-full" onclick="tryGoRaffle()">🎯 추첨 시작하기</button>
+</div>
+
+<!-- ═══════════════ RAFFLE ═══════════════ -->
+<div class="screen" id="s-raffle">
+
+  <div id="rf-test-banner" class="alert alert-orange" style="display:none">🧪 테스트 모드 결과입니다</div>
+
+  <!-- Stats -->
+  <div class="stats" id="rf-stats"></div>
+
+  <!-- Raffle buttons -->
+  <div class="raffle-btns">
+    <button class="rbtn rbtn-all" onclick="doBulk()">
+      <span class="rbtn-icon">⚡</span>
+      <span class="rbtn-title">일괄 추첨</span>
+      <span class="rbtn-sub">전체 한번에</span>
+    </button>
+    <button class="rbtn rbtn-step" onclick="doStep()">
+      <span class="rbtn-icon">🎯</span>
+      <span class="rbtn-title">상품별 추첨</span>
+      <span class="rbtn-sub" id="step-sub">단계적으로</span>
+    </button>
+  </div>
+  <button class="btn btn-ghost btn-sm btn-full" onclick="resetRaffle()" style="margin-bottom:16px">초기화</button>
+
+  <!-- Step dots -->
+  <div id="dots-wrap" style="display:none"><div class="step-dots" id="dots"></div></div>
+
+  <!-- Results -->
+  <div id="rf-results">
+    <div class="empty">
+      <span class="empty-icon">🎰</span>
+      <div class="empty-title">추첨을 시작해보세요</div>
+      <div class="empty-desc">위 버튼을 누르면<br>가중치 기반 무작위 추첨이 진행돼요</div>
+    </div>
+  </div>
+
+  <div style="height:80px"></div>
+</div>
+
+<!-- sticky reveal button -->
+<div class="sticky-bottom" id="sticky-reveal" style="display:none">
+  <button class="btn btn-success btn-lg btn-full" style="box-shadow:0 6px 24px rgba(0,199,60,.35)" onclick="revealAll()">🎉 전체 당첨자 공개하기</button>
+</div>
+
+</div><!-- /app -->
+
+<!-- Confetti -->
+<div class="cfwrap" id="cfwrap"></div>
+
+<!-- Alert modal -->
+<div class="modal-bg" id="modal" onclick="closeModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-icon" id="m-ic"></div>
+    <div class="modal-title" id="m-ti"></div>
+    <div class="modal-desc" id="m-de"></div>
+    <button class="btn btn-primary btn-lg btn-full" onclick="closeModal()">확인</button>
+  </div>
+</div>
+
+<!-- Table modal -->
+<div class="modal-bg tbl-modal" id="tbl-modal" onclick="closeTbl()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="padding-bottom:28px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:17px;font-weight:900">멤버 목록</div>
+      <button class="btn btn-xs btn-ghost" onclick="closeTbl()">닫기</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-weight:600;margin-bottom:10px;padding:0 2px">
+      <span>총 <b id="tbl-cnt" style="color:var(--text1)">0</b>명</span>
+      <span>가중치 합: <b id="tbl-w" style="color:var(--text1)">0</b></span>
+    </div>
+    <div class="table-wrap" id="tbl-body"></div>
+  </div>
+</div>
+
+<script>
+// ══ STATE ══
+var rawRows=[],csvHdrs=[],members=[],prizes=[];
+var results=[],stepIdx=0;
+var sortCol='memberSince',sortDir=1;
+var isTest=false,mode='real';
+
+// ══ MODAL ══
+function alert2(ic,ti,de){
+  document.getElementById('m-ic').textContent=ic;
+  document.getElementById('m-ti').textContent=ti;
+  document.getElementById('m-de').innerHTML=de;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function openTableModal(){renderTable();document.getElementById('tbl-modal').classList.add('open')}
+function closeTbl(){document.getElementById('tbl-modal').classList.remove('open')}
+
+// ══ TABS ══
+function goTab(t){
+  ['guide','setup','raffle'].forEach(function(x){
+    document.getElementById('s-'+x).classList.toggle('active',x===t);
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+  });
+}
+function tryGoRaffle(){
+  if(!members.length){alert2('😅','멤버가 없어요','먼저 CSV를 업로드하거나 테스트 모드를 시작해주세요');return;}
+  if(!prizes.some(function(p){return p.name.trim();})){alert2('😅','상품을 입력해주세요','상품명을 최소 하나 입력해주세요');return;}
+  goTab('raffle');
+  renderStats();renderDots();
+  if(isTest)document.getElementById('rf-test-banner').style.display='block';
+  else document.getElementById('rf-test-banner').style.display='none';
+}
+
+// ══ MODE ══
+function setMode(m){
+  mode=m;
+  document.getElementById('mc-real').classList.toggle('active',m==='real');
+  document.getElementById('mc-test').classList.toggle('active',m==='test');
+  document.getElementById('guide-real').style.display=m==='real'?'block':'none';
+  document.getElementById('guide-test').style.display=m==='test'?'block':'none';
+}
+
+// ══ TEST MODE ══
+var lastNames=['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','전','홍','고','문','양','손','배','조','허','남','심'];
+var firstNames=['민준','서준','예준','도윤','시우','주원','하준','지호','준서','현우','지훈','건우','우진','선우','민재','현준','재원','시현','동현','지아','서연','서윤','지우','하은','하린','수아','지유','예은','채원','소율','지민','다은','예린','수빈','아린','유나','나은','가은','채은','민서','지현','수현','예나','은서','윤서','하영','유진','소진','세아'];
+function activateTest(){
+  isTest=true;members=[];
+  var now=Date.now();
+  var tiers=['일반 멤버','스탠다드','프리미엄','VIP'];
+  var tw=[.6,.25,.12,.03];
+  for(var i=0;i<1000;i++){
+    var ln=lastNames[Math.floor(Math.random()*lastNames.length)];
+    var fn=firstNames[Math.floor(Math.random()*firstNames.length)];
+    var mo=1+Math.random()*35;
+    var since=new Date(now-mo*30.44*864e5);
+    var tr=Math.random(),ti=0,tc=0;
+    for(var j=0;j<tw.length;j++){tc+=tw[j];if(tr<tc){ti=j;break;}}
+    members.push({
+      displayName:ln+fn,
+      channelId:'UC'+Math.random().toString(36).substr(2,16).toUpperCase(),
+      tier:tiers[ti],memberSince:since
+    });
+  }
+  sortCol='memberSince';sortDir=1;sortMembers();
+  updateMemSummary('테스트 모드 — 1,000명 자동 생성');
+  document.getElementById('test-badge').style.display='block';
+  document.getElementById('test-banner').style.display='flex';
+  document.getElementById('csv-section').style.display='none';
+  goTab('setup');
+  alert2('🧪','테스트 모드 시작!','1,000명의 임의 멤버가 생성됐어요.\n상품을 설정하고 추첨을 시작해보세요!');
+}
+
+// ══ DRAG/DROP ══
+var dz=document.getElementById('dz');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag')});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+
+// ══ FILE ══
+function handleFile(f){
+  if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){parseCSV(e.target.result,f.name)};
+  r.readAsText(f,'UTF-8');
+}
+function parseLine(l){
+  var cols=[],cur='',q=false;
+  for(var i=0;i<l.length;i++){
+    var c=l[i];
+    if(c==='"'&&!q)q=true;
+    else if(c==='"'&&q)q=false;
+    else if(c===','&&!q){cols.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  return cols.push(cur.trim()),cols;
+}
+function parseCSV(txt,fname){
+  txt=txt.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  var lines=txt.split('\n').filter(function(l){return l.trim()});
+  if(lines.length<2){alert2('😅','파싱 실패','CSV 데이터가 없어요');return;}
+  csvHdrs=parseLine(lines[0]);
+  rawRows=[];
+  for(var i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    var cols=parseLine(lines[i]),row={};
+    csvHdrs.forEach(function(h,j){row[h]=cols[j]||''});
+    rawRows.push(row);
+  }
+  dz.classList.add('done');
+  document.getElementById('dz-icon').textContent='✅';
+  document.getElementById('dz-title').textContent=fname;
+  document.getElementById('dz-hint').textContent=rawRows.length+'행 · '+csvHdrs.length+'컬럼';
+  var chips=document.getElementById('csv-chips');
+  chips.innerHTML='<span class="chip chip-blue">'+rawRows.length+'행</span>'
+    +'<span class="chip chip-green">'+csvHdrs.length+'컬럼</span>'
+    +'<span class="chip chip-gray">'+csvHdrs.slice(0,3).join(' · ')+'</span>';
+  renderColMap();
+  document.getElementById('cutoff').value=new Date().toISOString().split('T')[0];
+  document.getElementById('csv-cfg').style.display='block';
+}
+
+// ══ COLMAP ══
+var mFields=[
+  {k:'displayName',l:'표시 이름 (필수)'},
+  {k:'channelId',l:'채널 ID'},
+  {k:'tier',l:'멤버십 등급'},
+  {k:'memberSince',l:'가입일 (필수)'}
+];
+function guess(key){
+  var g={
+    displayName:['이름','name','displayname','표시','display','채널명','member'],
+    channelId:['채널id','channelid','channel','채널'],
+    tier:['등급','tier','level','멤버십','membership','플랜'],
+    memberSince:['가입일','since','join','date','시작일','memberdate']
+  };
+  var cands=g[key]||[];
+  for(var i=0;i<csvHdrs.length;i++){
+    var h=csvHdrs[i].toLowerCase().replace(/\s/g,'');
+    for(var j=0;j<cands.length;j++)if(h.includes(cands[j].replace(/\s/g,'')))return csvHdrs[i];
+  }
+  return '';
+}
+function renderColMap(){
+  var cm=document.getElementById('col-map');cm.innerHTML='';
+  mFields.forEach(function(f){
+    var g2=guess(f.k);
+    var opts='<option value="">(없음)</option>'+csvHdrs.map(function(h){
+      return '<option value="'+escH(h)+'"'+(h===g2?' selected':'')+'>'+escH(h)+'</option>';
+    }).join('');
+    var d=document.createElement('div');d.className='colmap-item';
+    d.innerHTML='<div class="colmap-label">'+f.l+'</div><select class="input" id="map-'+f.k+'">'+opts+'</select>';
+    cm.appendChild(d);
+  });
+}
+
+// ══ APPLY CSV ══
+function parseDate(s){
+  if(!s)return null;s=s.trim();var m;
+  if((m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/)))return new Date(+m[1],+m[2]-1,+m[3]);
+  if((m=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/)))return new Date(+m[3],+m[2]-1,+m[1]);
+  if((m=s.match(/^(\d{4})(\d{2})(\d{2})$/)))return new Date(+m[1],+m[2]-1,+m[3]);
+  var d=new Date(s);return isNaN(d.getTime())?null:d;
+}
+function applyCSV(){
+  var cv=document.getElementById('cutoff').value;
+  if(!cv){alert2('😅','기준일 선택','날짜를 설정해야 멤버를 불러올 수 있어요');return;}
+  var cutoff=new Date(cv);cutoff.setHours(23,59,59,999);
+  var mn=document.getElementById('map-displayName').value;
+  var ms2=document.getElementById('map-memberSince').value;
+  var mi=document.getElementById('map-channelId').value;
+  var mt=document.getElementById('map-tier').value;
+  if(!mn||!ms2){alert2('😅','필수 컬럼 선택','표시 이름과 가입일 컬럼은 꼭 선택해야 해요');return;}
+  var parsed=[],skip=0;
+  rawRows.forEach(function(row){
+    var s=parseDate(row[ms2]||'');
+    if(!s){skip++;return;}
+    if(s>cutoff)return;
+    parsed.push({
+      displayName:row[mn]||'(이름없음)',
+      channelId:mi?row[mi]:'',
+      tier:mt?(row[mt]||'일반'):'일반',
+      memberSince:s
+    });
+  });
+  if(!parsed.length){alert2('😅','멤버 없음','기준일 이전 가입자가 없어요. 날짜 형식을 확인해주세요');return;}
+  members=parsed;isTest=false;
+  sortCol='memberSince';sortDir=1;sortMembers();
+  updateMemSummary(cv+' 기준');
+  if(skip)alert2('ℹ️',skip+'행 건너뜀','날짜 파싱 실패한 행이 있어요');
+}
+function updateMemSummary(sub){
+  document.getElementById('mem-title').textContent=members.length.toLocaleString()+'명 로드됨';
+  document.getElementById('mem-sub').textContent=sub;
+  document.getElementById('mem-summary').style.display='flex';
+}
+
+// ══ TABLE ══
+function calcMo(s){return Math.round((Date.now()-s.getTime())/(864e5*30.44)*10)/10}
+function sortMembers(){
+  var c=sortCol,d=sortDir;
+  members.sort(function(a,b){
+    var va,vb;
+    if(c==='memberSince'){va=a.memberSince;vb=b.memberSince;}
+    else if(c==='months'){va=calcMo(a.memberSince);vb=calcMo(b.memberSince);}
+    else if(c==='displayName'){va=a.displayName.toLowerCase();vb=b.displayName.toLowerCase();}
+    else{va=(a[c]||'').toLowerCase();vb=(b[c]||'').toLowerCase();}
+    return va<vb?-d:va>vb?d:0;
+  });
+}
+function setsort(col){
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
+  sortMembers();renderTable();
+}
+function arr(c){
+  if(sortCol!==c)return '<span style="opacity:.3;font-size:9px">⇅</span>';
+  return '<span style="font-size:9px">'+(sortDir===1?'↑':'↓')+'</span>';
+}
+function renderTable(){
+  var tw=members.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
+  document.getElementById('tbl-cnt').textContent=members.length.toLocaleString();
+  document.getElementById('tbl-w').textContent=Math.round(tw*10)/10;
+  var avatarColors=[
+    ['#dbeafe','#1d4ed8'],['#dcfce7','#166534'],['#fef3c7','#92400e'],
+    ['#f3e8ff','#6d28d9'],['#fce7f3','#9d174d'],['#cffafe','#0e7490']
+  ];
+  var html='<table><thead><tr>'
+    +'<th style="cursor:default">#</th>'
+    +'<th class="'+(sortCol==='displayName'?'sorted':'')+'" onclick="setsort(\'displayName\')">이름 '+arr('displayName')+'</th>'
+    +'<th style="cursor:default"></th>'
+    +'<th class="'+(sortCol==='tier'?'sorted':'')+'" onclick="setsort(\'tier\')">등급 '+arr('tier')+'</th>'
+    +'<th class="'+(sortCol==='memberSince'?'sorted':'')+'" onclick="setsort(\'memberSince\')">가입일 '+arr('memberSince')+'</th>'
+    +'<th class="'+(sortCol==='months'?'sorted':'')+'" onclick="setsort(\'months\')">개월 '+arr('months')+'</th>'
+    +'</tr></thead><tbody>';
+  members.forEach(function(m,i){
+    var mo=calcMo(m.memberSince);
+    var ci=i%avatarColors.length;
+    var bg=avatarColors[ci][0],fg=avatarColors[ci][1];
+    var init=(m.displayName||'?').charAt(0).toUpperCase();
+    html+='<tr>'
+      +'<td style="color:var(--text4);font-size:11px">'+(i+1)+'</td>'
+      +'<td style="font-weight:700">'+escH(m.displayName)+'</td>'
+      +'<td><div class="avatar" style="background:'+bg+';color:'+fg+';width:30px;height:30px;font-size:12px">'+init+'</div></td>'
+      +'<td><span class="badge badge-b">'+escH(m.tier)+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text3)">'+m.memberSince.toLocaleDateString('ko-KR')+'</td>'
+      +'<td><span class="badge badge-o">'+mo+'개월</span></td>'
+      +'</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tbl-body').innerHTML=html;
+}
+
+// ══ PRIZES ══
+function initPrizes(){prizes=[];addPrize('1등 상품',1);addPrize('2등 상품',1)}
+function addPrize(n,q){prizes.push({id:Date.now()+'_'+Math.random(),name:n||'',qty:q||1});renderPrizes()}
+function delPrize(id){
+  if(prizes.length<=1){alert2('😅','삭제 불가','최소 1개의 상품이 필요해요');return;}
+  prizes=prizes.filter(function(p){return p.id!==id});renderPrizes();
+}
+function renderPrizes(){
+  var pl=document.getElementById('prize-list');pl.innerHTML='';
+  prizes.forEach(function(p,i){
+    var d=document.createElement('div');d.className='prize-row';
+    d.innerHTML='<div class="prize-idx">'+(i+1)+'</div>'
+      +'<input class="prize-input" placeholder="상품명..." value="'+escH(p.name)+'" oninput="prizes['+i+'].name=this.value"/>'
+      +'<input class="prize-qty" type="number" min="1" value="'+p.qty+'" oninput="prizes['+i+'].qty=Math.max(1,parseInt(this.value)||1)"/>'
+      +'<span class="prize-unit">명</span>'
+      +'<button class="btn btn-xs btn-danger-soft" onclick="delPrize(\''+p.id+'\')">삭제</button>';
+    pl.appendChild(d);
+  });
+}
+
+// ══ RAFFLE ══
+function renderStats(){
+  var tw=members.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
+  var tp=prizes.reduce(function(s,p){return s+p.qty},0);
+  var maxM=members.reduce(function(a,m){var mo=calcMo(m.memberSince);return mo>a?mo:a},0);
+  document.getElementById('rf-stats').innerHTML=
+    '<div class="stat"><span class="stat-icon">👥</span><div class="stat-val">'+members.length.toLocaleString()+'</div><div class="stat-label">참여 멤버</div></div>'
+    +'<div class="stat"><span class="stat-icon">🎁</span><div class="stat-val">'+tp+'</div><div class="stat-label">당첨 인원</div></div>'
+    +'<div class="stat"><span class="stat-icon">⚖️</span><div class="stat-val">'+Math.round(tw)+'</div><div class="stat-label">총 가중치</div></div>'
+    +'<div class="stat"><span class="stat-icon">🏆</span><div class="stat-val">'+maxM+'<span style="font-size:13px;color:var(--text3)">mo</span></div><div class="stat-label">최장 멤버십</div></div>';
+}
+function renderDots(){
+  var w=document.getElementById('dots-wrap');
+  if(prizes.length<=1){w.style.display='none';return;}
+  w.style.display='block';
+  var html='';
+  prizes.forEach(function(p,i){
+    if(i>0)html+='<div class="dot-line'+(i<=stepIdx?' done':'')+'"></div>';
+    var c=i<stepIdx?'done':i===stepIdx?'cur':'';
+    html+='<div class="dot '+c+'" title="'+escH(p.name)+'"></div>';
+  });
+  html+='<span class="dot-label">'+stepIdx+'/'+prizes.length+'</span>';
+  document.getElementById('dots').innerHTML=html;
+  var sub=stepIdx>=prizes.length?'완료':prizes[Math.min(stepIdx,prizes.length-1)].name;
+  document.getElementById('step-sub').textContent='다음: '+sub;
+}
+function uid(m){return m.displayName+'||'+m.channelId}
+function wpick(pool){
+  var tot=pool.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
+  var r=Math.random()*tot,acc=0;
+  for(var i=0;i<pool.length;i++){acc+=calcMo(pool[i].memberSince);if(r<acc)return pool[i];}
+  return pool[pool.length-1];
+}
+function doBulk(){
+  results=[];stepIdx=prizes.length;
+  var pool=members.slice();
+  prizes.forEach(function(p,pi){
+    for(var i=0;i<p.qty;i++){
+      if(!pool.length)return;
+      var w=wpick(pool);
+      pool=pool.filter(function(m){return uid(m)!==uid(w)});
+      results.push({prize:p.name,pi:pi,member:w,revealed:false});
+    }
+  });
+  renderResults();renderDots();
+  document.getElementById('sticky-reveal').style.display='block';
+  confetti(20);
+}
+function doStep(){
+  if(stepIdx>=prizes.length){alert2('🎉','추첨 완료!','모든 상품 추첨이 끝났어요. 초기화 후 다시 시작할 수 있어요');return;}
+  var p=prizes[stepIdx];
+  var won=results.map(function(r){return uid(r.member)});
+  var pool=members.filter(function(m){return won.indexOf(uid(m))<0});
+  for(var i=0;i<p.qty;i++){
+    if(!pool.length)break;
+    var w=wpick(pool);
+    pool=pool.filter(function(m){return uid(m)!==uid(w)});
+    results.push({prize:p.name,pi:stepIdx,member:w,revealed:false});
+  }
+  stepIdx++;
+  renderResults();renderDots();
+  if(stepIdx>=prizes.length)document.getElementById('sticky-reveal').style.display='block';
+  confetti(10);
+}
+function resetRaffle(){
+  results=[];stepIdx=0;
+  document.getElementById('sticky-reveal').style.display='none';
+  renderResults();renderDots();
+}
+function revealOne(gi){if(results[gi])results[gi].revealed=true;renderResults();confetti(6)}
+function revealAll(){results.forEach(function(r){r.revealed=true});renderResults();confetti(30)}
+
+var prizeColors=['#3182f6','#00c73c','#ff9500','#f04452','#7c3aed','#06b6d4','#ec4899'];
+var avatarBg=[
+  ['#dbeafe','#1d4ed8'],['#dcfce7','#166534'],['#fef3c7','#92400e'],
+  ['#fee2e2','#991b1b'],['#ede9fe','#5b21b6'],['#cffafe','#0e7490'],['#fce7f3','#9d174d']
+];
+
+function renderResults(){
+  var wrap=document.getElementById('rf-results');
+  if(!results.length){
+    wrap.innerHTML='<div class="empty"><span class="empty-icon">🎰</span><div class="empty-title">추첨을 시작해보세요</div><div class="empty-desc">위 버튼을 누르면<br>가중치 기반 추첨이 진행돼요</div></div>';
+    return;
+  }
+  var byPi={};
+  results.forEach(function(r,gi){
+    if(!byPi[r.pi])byPi[r.pi]={name:r.prize,items:[]};
+    byPi[r.pi].items.push({r:r,gi:gi});
+  });
+  var html='';
+  Object.keys(byPi).sort(function(a,b){return a-b}).forEach(function(pi){
+    var g=byPi[pi];
+    var color=prizeColors[parseInt(pi)%prizeColors.length];
+    var ab=avatarBg[parseInt(pi)%avatarBg.length];
+    html+='<div class="psec">'
+      +'<div class="psec-hd">'
+      +'<div class="psec-left">'
+      +'<div class="psec-badge" style="background:'+color+'">'+(parseInt(pi)+1)+'</div>'
+      +'<div><div class="psec-name">'+escH(g.name)+'</div><div class="psec-cnt">당첨 '+g.items.length+'명</div></div>'
+      +'</div>'
+      +'<span class="badge badge-b">'+g.items.length+'명</span>'
+      +'</div>';
+    g.items.forEach(function(obj){
+      var m=obj.r.member;
+      var mo=calcMo(m.memberSince);
+      var init=(m.displayName||'?').charAt(0).toUpperCase();
+      html+='<div class="wcard'+(obj.r.revealed?' revealed':'')+'">'
+        +'<div class="wcard-left">'
+        +'<div class="avatar" style="background:'+ab[0]+';color:'+ab[1]+'">'+init+'</div>'
+        +'<div class="wcard-info">'
+        +(obj.r.revealed
+          ?'<div class="name-shown slot-in">'+escH(m.displayName)+'</div>'
+          :'<div class="name-hidden" onclick="revealOne('+obj.gi+')">'+escH(m.displayName)+'</div>'
+           +'<div class="name-hint">👆 탭해서 이름 공개</div>'
+        )
+        +'<div class="wcard-meta">멤버십 <b>'+mo+'개월</b>'+(m.tier?' · '+escH(m.tier):'')+'</div>'
+        +'</div></div>'
+        +(obj.r.revealed
+          ?'<div class="check-badge">✓</div>'
+          :'<div class="pending-badge">?</div>'
+        )
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  wrap.innerHTML=html;
+}
+
+// ══ CONFETTI ══
+function confetti(n){
+  var w=document.getElementById('cfwrap');
+  var colors=['#3182f6','#00c73c','#ff9500','#f04452','#7c3aed','#fbbf24','#06b6d4'];
+  for(var i=0;i<n;i++){
+    (function(delay){
+      setTimeout(function(){
+        var el=document.createElement('div');
+        el.className='cf';
+        el.style.cssText='left:'+Math.random()*100+'%;width:'+(6+Math.random()*6)+'px;height:'+(6+Math.random()*10)+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px')+';animation-duration:'+(1.4+Math.random()*1.2)+'s';
+        w.appendChild(el);
+        setTimeout(function(){el.remove()},2800);
+      },delay);
+    })(i*60);
+  }
+}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ══ INIT ══
+initPrizes();
+</script>
+</body>
+</html>
