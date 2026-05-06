@@ -626,7 +626,10 @@ tr:hover td{background:var(--bg)}
 
 <!-- sticky reveal button -->
 <div class="sticky-bottom" id="sticky-reveal" style="display:none">
-  <button class="btn btn-success btn-lg btn-full" style="box-shadow:0 6px 24px rgba(0,199,60,.35)" onclick="revealAll()">🎉 전체 당첨자 공개하기</button>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="btn btn-success btn-lg btn-full" style="box-shadow:0 6px 24px rgba(0,199,60,.35)" onclick="revealAll()">🎉 전체 당첨자 공개하기</button>
+    <button class="btn btn-primary btn-md btn-full" onclick="openDownloadModal()">⬇️ 당첨자 명단 다운로드</button>
+  </div>
 </div>
 
 </div><!-- /app -->
@@ -660,6 +663,58 @@ tr:hover td{background:var(--bg)}
     <div class="table-wrap" id="tbl-body"></div>
   </div>
 </div>
+
+<!-- Download modal -->
+<div class="modal-bg" id="dl-modal" onclick="closeDl()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="font-size:20px;font-weight:900;margin-bottom:6px">⬇️ 다운로드</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">당첨자 명단을 원하는 형식으로 저장하세요</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <!-- CSV -->
+      <button class="dl-opt-btn" onclick="downloadCSV()">
+        <div class="dl-opt-icon" style="background:#e8faf0;color:#00843e">📊</div>
+        <div class="dl-opt-body">
+          <div class="dl-opt-title">Excel / CSV 파일</div>
+          <div class="dl-opt-sub">이름 · 채널ID · 등급 · 가입일 · 개월 수 포함</div>
+        </div>
+        <div class="dl-opt-arrow">→</div>
+      </button>
+
+      <!-- Image -->
+      <button class="dl-opt-btn" onclick="downloadImage()">
+        <div class="dl-opt-icon" style="background:#ebf3fe;color:#1b64da">🖼️</div>
+        <div class="dl-opt-body">
+          <div class="dl-opt-title">이미지 (PNG)</div>
+          <div class="dl-opt-sub">SNS 공유용 당첨자 카드 이미지</div>
+        </div>
+        <div class="dl-opt-arrow">→</div>
+      </button>
+    </div>
+
+    <button class="btn btn-ghost btn-md btn-full" onclick="closeDl()">닫기</button>
+  </div>
+</div>
+
+<!-- Hidden canvas for image export -->
+<canvas id="export-canvas" style="display:none"></canvas>
+
+<style>
+.dl-opt-btn{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:var(--r-lg);
+  border:1.5px solid var(--border);background:var(--bg);
+  cursor:pointer;transition:.15s;text-align:left;width:100%;
+  font-family:inherit;
+}
+.dl-opt-btn:hover{border-color:var(--primary);background:var(--primary-bg)}
+.dl-opt-icon{width:44px;height:44px;border-radius:var(--r);font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dl-opt-body{flex:1}
+.dl-opt-title{font-size:15px;font-weight:700;color:var(--text1);margin-bottom:2px}
+.dl-opt-sub{font-size:12px;color:var(--text3)}
+.dl-opt-arrow{font-size:18px;color:var(--text4)}
+</style>
 
 <script>
 // ══ STATE ══
@@ -773,314 +828,4 @@ function parseCSV(txt,fname){
   dz.classList.add('done');
   document.getElementById('dz-icon').textContent='✅';
   document.getElementById('dz-title').textContent=fname;
-  document.getElementById('dz-hint').textContent=rawRows.length+'행 · '+csvHdrs.length+'컬럼';
-  var chips=document.getElementById('csv-chips');
-  chips.innerHTML='<span class="chip chip-blue">'+rawRows.length+'행</span>'
-    +'<span class="chip chip-green">'+csvHdrs.length+'컬럼</span>'
-    +'<span class="chip chip-gray">'+csvHdrs.slice(0,3).join(' · ')+'</span>';
-  renderColMap();
-  document.getElementById('cutoff').value=new Date().toISOString().split('T')[0];
-  document.getElementById('csv-cfg').style.display='block';
-}
-
-// ══ COLMAP ══
-var mFields=[
-  {k:'displayName',l:'표시 이름 (필수)'},
-  {k:'channelId',l:'채널 ID'},
-  {k:'tier',l:'멤버십 등급'},
-  {k:'memberSince',l:'가입일 (필수)'}
-];
-function guess(key){
-  var g={
-    displayName:['이름','name','displayname','표시','display','채널명','member'],
-    channelId:['채널id','channelid','channel','채널'],
-    tier:['등급','tier','level','멤버십','membership','플랜'],
-    memberSince:['가입일','since','join','date','시작일','memberdate']
-  };
-  var cands=g[key]||[];
-  for(var i=0;i<csvHdrs.length;i++){
-    var h=csvHdrs[i].toLowerCase().replace(/\s/g,'');
-    for(var j=0;j<cands.length;j++)if(h.includes(cands[j].replace(/\s/g,'')))return csvHdrs[i];
-  }
-  return '';
-}
-function renderColMap(){
-  var cm=document.getElementById('col-map');cm.innerHTML='';
-  mFields.forEach(function(f){
-    var g2=guess(f.k);
-    var opts='<option value="">(없음)</option>'+csvHdrs.map(function(h){
-      return '<option value="'+escH(h)+'"'+(h===g2?' selected':'')+'>'+escH(h)+'</option>';
-    }).join('');
-    var d=document.createElement('div');d.className='colmap-item';
-    d.innerHTML='<div class="colmap-label">'+f.l+'</div><select class="input" id="map-'+f.k+'">'+opts+'</select>';
-    cm.appendChild(d);
-  });
-}
-
-// ══ APPLY CSV ══
-function parseDate(s){
-  if(!s)return null;s=s.trim();var m;
-  if((m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/)))return new Date(+m[1],+m[2]-1,+m[3]);
-  if((m=s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/)))return new Date(+m[3],+m[2]-1,+m[1]);
-  if((m=s.match(/^(\d{4})(\d{2})(\d{2})$/)))return new Date(+m[1],+m[2]-1,+m[3]);
-  var d=new Date(s);return isNaN(d.getTime())?null:d;
-}
-function applyCSV(){
-  var cv=document.getElementById('cutoff').value;
-  if(!cv){alert2('😅','기준일 선택','날짜를 설정해야 멤버를 불러올 수 있어요');return;}
-  var cutoff=new Date(cv);cutoff.setHours(23,59,59,999);
-  var mn=document.getElementById('map-displayName').value;
-  var ms2=document.getElementById('map-memberSince').value;
-  var mi=document.getElementById('map-channelId').value;
-  var mt=document.getElementById('map-tier').value;
-  if(!mn||!ms2){alert2('😅','필수 컬럼 선택','표시 이름과 가입일 컬럼은 꼭 선택해야 해요');return;}
-  var parsed=[],skip=0;
-  rawRows.forEach(function(row){
-    var s=parseDate(row[ms2]||'');
-    if(!s){skip++;return;}
-    if(s>cutoff)return;
-    parsed.push({
-      displayName:row[mn]||'(이름없음)',
-      channelId:mi?row[mi]:'',
-      tier:mt?(row[mt]||'일반'):'일반',
-      memberSince:s
-    });
-  });
-  if(!parsed.length){alert2('😅','멤버 없음','기준일 이전 가입자가 없어요. 날짜 형식을 확인해주세요');return;}
-  members=parsed;isTest=false;
-  sortCol='memberSince';sortDir=1;sortMembers();
-  updateMemSummary(cv+' 기준');
-  if(skip)alert2('ℹ️',skip+'행 건너뜀','날짜 파싱 실패한 행이 있어요');
-}
-function updateMemSummary(sub){
-  document.getElementById('mem-title').textContent=members.length.toLocaleString()+'명 로드됨';
-  document.getElementById('mem-sub').textContent=sub;
-  document.getElementById('mem-summary').style.display='flex';
-}
-
-// ══ TABLE ══
-function calcMo(s){return Math.round((Date.now()-s.getTime())/(864e5*30.44)*10)/10}
-function sortMembers(){
-  var c=sortCol,d=sortDir;
-  members.sort(function(a,b){
-    var va,vb;
-    if(c==='memberSince'){va=a.memberSince;vb=b.memberSince;}
-    else if(c==='months'){va=calcMo(a.memberSince);vb=calcMo(b.memberSince);}
-    else if(c==='displayName'){va=a.displayName.toLowerCase();vb=b.displayName.toLowerCase();}
-    else{va=(a[c]||'').toLowerCase();vb=(b[c]||'').toLowerCase();}
-    return va<vb?-d:va>vb?d:0;
-  });
-}
-function setsort(col){
-  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
-  sortMembers();renderTable();
-}
-function arr(c){
-  if(sortCol!==c)return '<span style="opacity:.3;font-size:9px">⇅</span>';
-  return '<span style="font-size:9px">'+(sortDir===1?'↑':'↓')+'</span>';
-}
-function renderTable(){
-  var tw=members.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
-  document.getElementById('tbl-cnt').textContent=members.length.toLocaleString();
-  document.getElementById('tbl-w').textContent=Math.round(tw*10)/10;
-  var avatarColors=[
-    ['#dbeafe','#1d4ed8'],['#dcfce7','#166534'],['#fef3c7','#92400e'],
-    ['#f3e8ff','#6d28d9'],['#fce7f3','#9d174d'],['#cffafe','#0e7490']
-  ];
-  var html='<table><thead><tr>'
-    +'<th style="cursor:default">#</th>'
-    +'<th class="'+(sortCol==='displayName'?'sorted':'')+'" onclick="setsort(\'displayName\')">이름 '+arr('displayName')+'</th>'
-    +'<th style="cursor:default"></th>'
-    +'<th class="'+(sortCol==='tier'?'sorted':'')+'" onclick="setsort(\'tier\')">등급 '+arr('tier')+'</th>'
-    +'<th class="'+(sortCol==='memberSince'?'sorted':'')+'" onclick="setsort(\'memberSince\')">가입일 '+arr('memberSince')+'</th>'
-    +'<th class="'+(sortCol==='months'?'sorted':'')+'" onclick="setsort(\'months\')">개월 '+arr('months')+'</th>'
-    +'</tr></thead><tbody>';
-  members.forEach(function(m,i){
-    var mo=calcMo(m.memberSince);
-    var ci=i%avatarColors.length;
-    var bg=avatarColors[ci][0],fg=avatarColors[ci][1];
-    var init=(m.displayName||'?').charAt(0).toUpperCase();
-    html+='<tr>'
-      +'<td style="color:var(--text4);font-size:11px">'+(i+1)+'</td>'
-      +'<td style="font-weight:700">'+escH(m.displayName)+'</td>'
-      +'<td><div class="avatar" style="background:'+bg+';color:'+fg+';width:30px;height:30px;font-size:12px">'+init+'</div></td>'
-      +'<td><span class="badge badge-b">'+escH(m.tier)+'</span></td>'
-      +'<td style="font-size:12px;color:var(--text3)">'+m.memberSince.toLocaleDateString('ko-KR')+'</td>'
-      +'<td><span class="badge badge-o">'+mo+'개월</span></td>'
-      +'</tr>';
-  });
-  html+='</tbody></table>';
-  document.getElementById('tbl-body').innerHTML=html;
-}
-
-// ══ PRIZES ══
-function initPrizes(){prizes=[];addPrize('1등 상품',1);addPrize('2등 상품',1)}
-function addPrize(n,q){prizes.push({id:Date.now()+'_'+Math.random(),name:n||'',qty:q||1});renderPrizes()}
-function delPrize(id){
-  if(prizes.length<=1){alert2('😅','삭제 불가','최소 1개의 상품이 필요해요');return;}
-  prizes=prizes.filter(function(p){return p.id!==id});renderPrizes();
-}
-function renderPrizes(){
-  var pl=document.getElementById('prize-list');pl.innerHTML='';
-  prizes.forEach(function(p,i){
-    var d=document.createElement('div');d.className='prize-row';
-    d.innerHTML='<div class="prize-idx">'+(i+1)+'</div>'
-      +'<input class="prize-input" placeholder="상품명..." value="'+escH(p.name)+'" oninput="prizes['+i+'].name=this.value"/>'
-      +'<input class="prize-qty" type="number" min="1" value="'+p.qty+'" oninput="prizes['+i+'].qty=Math.max(1,parseInt(this.value)||1)"/>'
-      +'<span class="prize-unit">명</span>'
-      +'<button class="btn btn-xs btn-danger-soft" onclick="delPrize(\''+p.id+'\')">삭제</button>';
-    pl.appendChild(d);
-  });
-}
-
-// ══ RAFFLE ══
-function renderStats(){
-  var tw=members.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
-  var tp=prizes.reduce(function(s,p){return s+p.qty},0);
-  var maxM=members.reduce(function(a,m){var mo=calcMo(m.memberSince);return mo>a?mo:a},0);
-  document.getElementById('rf-stats').innerHTML=
-    '<div class="stat"><span class="stat-icon">👥</span><div class="stat-val">'+members.length.toLocaleString()+'</div><div class="stat-label">참여 멤버</div></div>'
-    +'<div class="stat"><span class="stat-icon">🎁</span><div class="stat-val">'+tp+'</div><div class="stat-label">당첨 인원</div></div>'
-    +'<div class="stat"><span class="stat-icon">⚖️</span><div class="stat-val">'+Math.round(tw)+'</div><div class="stat-label">총 가중치</div></div>'
-    +'<div class="stat"><span class="stat-icon">🏆</span><div class="stat-val">'+maxM+'<span style="font-size:13px;color:var(--text3)">mo</span></div><div class="stat-label">최장 멤버십</div></div>';
-}
-function renderDots(){
-  var w=document.getElementById('dots-wrap');
-  if(prizes.length<=1){w.style.display='none';return;}
-  w.style.display='block';
-  var html='';
-  prizes.forEach(function(p,i){
-    if(i>0)html+='<div class="dot-line'+(i<=stepIdx?' done':'')+'"></div>';
-    var c=i<stepIdx?'done':i===stepIdx?'cur':'';
-    html+='<div class="dot '+c+'" title="'+escH(p.name)+'"></div>';
-  });
-  html+='<span class="dot-label">'+stepIdx+'/'+prizes.length+'</span>';
-  document.getElementById('dots').innerHTML=html;
-  var sub=stepIdx>=prizes.length?'완료':prizes[Math.min(stepIdx,prizes.length-1)].name;
-  document.getElementById('step-sub').textContent='다음: '+sub;
-}
-function uid(m){return m.displayName+'||'+m.channelId}
-function wpick(pool){
-  var tot=pool.reduce(function(s,m){return s+calcMo(m.memberSince)},0);
-  var r=Math.random()*tot,acc=0;
-  for(var i=0;i<pool.length;i++){acc+=calcMo(pool[i].memberSince);if(r<acc)return pool[i];}
-  return pool[pool.length-1];
-}
-function doBulk(){
-  results=[];stepIdx=prizes.length;
-  var pool=members.slice();
-  prizes.forEach(function(p,pi){
-    for(var i=0;i<p.qty;i++){
-      if(!pool.length)return;
-      var w=wpick(pool);
-      pool=pool.filter(function(m){return uid(m)!==uid(w)});
-      results.push({prize:p.name,pi:pi,member:w,revealed:false});
-    }
-  });
-  renderResults();renderDots();
-  document.getElementById('sticky-reveal').style.display='block';
-  confetti(20);
-}
-function doStep(){
-  if(stepIdx>=prizes.length){alert2('🎉','추첨 완료!','모든 상품 추첨이 끝났어요. 초기화 후 다시 시작할 수 있어요');return;}
-  var p=prizes[stepIdx];
-  var won=results.map(function(r){return uid(r.member)});
-  var pool=members.filter(function(m){return won.indexOf(uid(m))<0});
-  for(var i=0;i<p.qty;i++){
-    if(!pool.length)break;
-    var w=wpick(pool);
-    pool=pool.filter(function(m){return uid(m)!==uid(w)});
-    results.push({prize:p.name,pi:stepIdx,member:w,revealed:false});
-  }
-  stepIdx++;
-  renderResults();renderDots();
-  if(stepIdx>=prizes.length)document.getElementById('sticky-reveal').style.display='block';
-  confetti(10);
-}
-function resetRaffle(){
-  results=[];stepIdx=0;
-  document.getElementById('sticky-reveal').style.display='none';
-  renderResults();renderDots();
-}
-function revealOne(gi){if(results[gi])results[gi].revealed=true;renderResults();confetti(6)}
-function revealAll(){results.forEach(function(r){r.revealed=true});renderResults();confetti(30)}
-
-var prizeColors=['#3182f6','#00c73c','#ff9500','#f04452','#7c3aed','#06b6d4','#ec4899'];
-var avatarBg=[
-  ['#dbeafe','#1d4ed8'],['#dcfce7','#166534'],['#fef3c7','#92400e'],
-  ['#fee2e2','#991b1b'],['#ede9fe','#5b21b6'],['#cffafe','#0e7490'],['#fce7f3','#9d174d']
-];
-
-function renderResults(){
-  var wrap=document.getElementById('rf-results');
-  if(!results.length){
-    wrap.innerHTML='<div class="empty"><span class="empty-icon">🎰</span><div class="empty-title">추첨을 시작해보세요</div><div class="empty-desc">위 버튼을 누르면<br>가중치 기반 추첨이 진행돼요</div></div>';
-    return;
-  }
-  var byPi={};
-  results.forEach(function(r,gi){
-    if(!byPi[r.pi])byPi[r.pi]={name:r.prize,items:[]};
-    byPi[r.pi].items.push({r:r,gi:gi});
-  });
-  var html='';
-  Object.keys(byPi).sort(function(a,b){return a-b}).forEach(function(pi){
-    var g=byPi[pi];
-    var color=prizeColors[parseInt(pi)%prizeColors.length];
-    var ab=avatarBg[parseInt(pi)%avatarBg.length];
-    html+='<div class="psec">'
-      +'<div class="psec-hd">'
-      +'<div class="psec-left">'
-      +'<div class="psec-badge" style="background:'+color+'">'+(parseInt(pi)+1)+'</div>'
-      +'<div><div class="psec-name">'+escH(g.name)+'</div><div class="psec-cnt">당첨 '+g.items.length+'명</div></div>'
-      +'</div>'
-      +'<span class="badge badge-b">'+g.items.length+'명</span>'
-      +'</div>';
-    g.items.forEach(function(obj){
-      var m=obj.r.member;
-      var mo=calcMo(m.memberSince);
-      var init=(m.displayName||'?').charAt(0).toUpperCase();
-      html+='<div class="wcard'+(obj.r.revealed?' revealed':'')+'">'
-        +'<div class="wcard-left">'
-        +'<div class="avatar" style="background:'+ab[0]+';color:'+ab[1]+'">'+init+'</div>'
-        +'<div class="wcard-info">'
-        +(obj.r.revealed
-          ?'<div class="name-shown slot-in">'+escH(m.displayName)+'</div>'
-          :'<div class="name-hidden" onclick="revealOne('+obj.gi+')">'+escH(m.displayName)+'</div>'
-           +'<div class="name-hint">👆 탭해서 이름 공개</div>'
-        )
-        +'<div class="wcard-meta">멤버십 <b>'+mo+'개월</b>'+(m.tier?' · '+escH(m.tier):'')+'</div>'
-        +'</div></div>'
-        +(obj.r.revealed
-          ?'<div class="check-badge">✓</div>'
-          :'<div class="pending-badge">?</div>'
-        )
-        +'</div>';
-    });
-    html+='</div>';
-  });
-  wrap.innerHTML=html;
-}
-
-// ══ CONFETTI ══
-function confetti(n){
-  var w=document.getElementById('cfwrap');
-  var colors=['#3182f6','#00c73c','#ff9500','#f04452','#7c3aed','#fbbf24','#06b6d4'];
-  for(var i=0;i<n;i++){
-    (function(delay){
-      setTimeout(function(){
-        var el=document.createElement('div');
-        el.className='cf';
-        el.style.cssText='left:'+Math.random()*100+'%;width:'+(6+Math.random()*6)+'px;height:'+(6+Math.random()*10)+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px')+';animation-duration:'+(1.4+Math.random()*1.2)+'s';
-        w.appendChild(el);
-        setTimeout(function(){el.remove()},2800);
-      },delay);
-    })(i*60);
-  }
-}
-function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-
-// ══ INIT ══
-initPrizes();
-</script>
-</body>
-</html>
+  document.getElementById('dz-hint').textContent=rawRows.length+'행 · '+csvHdrs.leng
